@@ -203,7 +203,7 @@
                         <i class="fa-solid fa-camera"></i> QRカメラ読み取り
                     </button>
                     <button id="btn-subtab-passcode" onclick="setScanSubTab('passcode')" class="flex-1 py-2.5 rounded-lg text-slate-600 transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-keyboard"></i> 合言葉・暗号入力
+                        <i class="fa-solid fa-keyboard"></i> コード入力
                     </button>
                 </div>
 
@@ -243,7 +243,6 @@
                         </div>
                         <ul class="list-disc list-inside text-[11px] text-amber-800/90 space-y-1 pl-1">
                             <li>ブラウザの「カメラアクセス許可」をONにしてください。</li>
-                            <li><strong>LINEやSNSアプリ内ブラウザ</strong>で開いている場合は、Safari または Chrome に切り替えて開いてください。</li>
                             <li>うまく読み取れない場合は「合言葉・暗号入力」をお使いください。</li>
                         </ul>
                     </div>
@@ -256,8 +255,8 @@
                             <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
                                 <i class="fa-solid fa-key"></i>
                             </div>
-                            <h3 class="font-bold text-slate-800 text-sm">ブース記載の暗号・合言葉を入力</h3>
-                            <p class="text-xs text-slate-500">各教室・模擬店の掲示物に書いてある3桁のコードを入力</p>
+                            <h3 class="font-bold text-slate-800 text-sm">自活会場に記載されているコード</h3>
+                            <p class="text-xs text-slate-500">各自活会場に書いてあるコードを入力</p>
                         </div>
 
                         <form onsubmit="handlePasscodeSubmit(event)" class="space-y-3">
@@ -279,7 +278,7 @@
                 <!-- Booth Filters -->
                 <div class="flex justify-between items-center">
                     <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
-                        <i class="fa-solid fa-store text-rose-500"></i> 文化祭ブース一覧
+                        <i class="fa-solid fa-store text-rose-500"></i> 自活一覧
                     </h2>
                     
                     <div class="inline-flex rounded-lg bg-slate-200 p-0.5 text-xs font-bold">
@@ -303,7 +302,7 @@
                     <div>
                         <span class="text-[10px] text-indigo-300 font-bold uppercase tracking-wider block">リアルタイムランキング</span>
                         <h2 class="font-black text-base flex items-center gap-1.5">
-                            <i class="fa-solid fa-trophy text-amber-400"></i> ポイント上位チャレンジャー
+                            <i class="fa-solid fa-trophy text-amber-400"></i> ポイント上位獲得者
                         </h2>
                     </div>
                     <button onclick="renderLeaderboard()" class="bg-white/10 hover:bg-white/20 text-xs font-bold px-3 py-1.5 rounded-full backdrop-blur-sm transition border border-white/20">
@@ -343,8 +342,8 @@
                         <i class="fa-solid fa-user-shield"></i>
                     </div>
                     <div>
-                        <h2 class="font-extrabold text-slate-800 text-sm">実行委員会（管理モード）</h2>
-                        <p class="text-xs text-slate-500">パスコードを入力してログインしてください（初期値: 1234）</p>
+                        <h2 class="font-extrabold text-slate-800 text-sm">管理者</h2>
+                        <p class="text-xs text-slate-500">パスコードを入力してログインしてください</p>
                     </div>
 
                     <form onsubmit="unlockAdmin(event)" class="space-y-3 max-w-xs mx-auto">
@@ -931,7 +930,7 @@
         function unlockAdmin(e) {
             e.preventDefault();
             const pass = document.getElementById('admin-passcode-input').value;
-            if (pass === '1234') { // Default passcode
+            if (pass === '79thhakuyo') { // Default passcode
                 appState.adminUnlocked = true;
                 document.getElementById('admin-lock-screen').classList.add('hidden');
                 document.getElementById('admin-dashboard').classList.remove('hidden');
