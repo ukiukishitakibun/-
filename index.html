@@ -128,40 +128,6 @@
                     </div>
                 </div>
 
-                <!-- Milestone Progress Card -->
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-gift text-rose-500"></i> 景品交換ライン
-                        </h3>
-                        <span id="dash-next-target" class="text-[11px] font-bold text-rose-600">あと 30pt で「駄菓子」</span>
-                    </div>
-
-                    <!-- Progress Bar Track -->
-                    <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-200">
-                        <div id="dash-progress-bar" class="bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400 h-full rounded-full transition-all duration-500 w-0"></div>
-                    </div>
-
-                    <!-- Milestone Items Grid -->
-                    <div class="grid grid-cols-3 gap-2 text-center text-xs pt-1">
-                        <div id="ms-1" class="bg-slate-50 border border-slate-200 p-2 rounded-xl transition">
-                            <span class="block text-base mb-0.5">🍬</span>
-                            <span class="font-extrabold text-slate-700 block text-[11px]">30 pt</span>
-                            <span class="text-[9px] text-slate-500 block">駄菓子セット</span>
-                        </div>
-                        <div id="ms-2" class="bg-slate-50 border border-slate-200 p-2 rounded-xl transition">
-                            <span class="block text-base mb-0.5">🎟️</span>
-                            <span class="font-extrabold text-slate-700 block text-[11px]">60 pt</span>
-                            <span class="text-[9px] text-slate-500 block">福引券 1枚</span>
-                        </div>
-                        <div id="ms-3" class="bg-slate-50 border border-slate-200 p-2 rounded-xl transition">
-                            <span class="block text-base mb-0.5">👑</span>
-                            <span class="font-extrabold text-slate-700 block text-[11px]">100 pt</span>
-                            <span class="text-[9px] text-slate-500 block">完走記念品</span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Quick Action Buttons -->
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="switchTab('scan'); setScanSubTab('qr');" class="bg-gradient-to-r from-rose-500 to-orange-500 text-white font-bold p-4 rounded-2xl shadow-lg shadow-rose-500/20 hover:opacity-95 transition flex flex-col items-center justify-center gap-2 group">
@@ -243,7 +209,7 @@
                         </div>
                         <ul class="list-disc list-inside text-[11px] text-amber-800/90 space-y-1 pl-1">
                             <li>ブラウザの「カメラアクセス許可」をONにしてください。</li>
-                            <li>うまく読み取れない場合は「合言葉・暗号入力」をお使いください。</li>
+                            <li>うまく読み取れない場合は「コード入力」をお使いください。</li>
                         </ul>
                     </div>
                 </div>
@@ -379,7 +345,7 @@
                         <!-- Printable Card Preview -->
                         <div id="admin-print-card" class="bg-white border-2 border-slate-800 rounded-2xl p-5 text-center space-y-3 shadow-lg my-3">
                             <div class="border-b border-slate-200 pb-2">
-                                <span class="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md" id="print-booth-category">クラス展示</span>
+                                <span class="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md" id="print-booth-category">自活</span>
                                 <h4 class="font-black text-base text-slate-900 mt-1" id="print-booth-title">1-1 お化け屋敷</h4>
                                 <p class="text-[11px] font-bold text-slate-500" id="print-booth-loc">1階 1-1教室</p>
                             </div>
@@ -453,7 +419,7 @@
                         <i class="fa-solid fa-user-plus"></i>
                     </div>
                     <h3 class="font-extrabold text-slate-800 text-base">参加者エントリー</h3>
-                    <p class="text-xs text-slate-500">文化祭スタンプラリーを始めましょう！</p>
+                    <p class="text-xs text-slate-500">柏葉祭実行委員会企画を始めましょう！</p>
                 </div>
 
                 <form onsubmit="saveUserProfile(event)" class="space-y-3">
@@ -469,7 +435,6 @@
                             <option value="2年生">2年生</option>
                             <option value="3年生">3年生</option>
                             <option value="保護者/一般">保護者・一般来場者</option>
-                            <option value="他校生">他校生</option>
                         </select>
                     </div>
 
@@ -489,9 +454,9 @@
 
                 <div class="space-y-1">
                     <span id="modal-booth-cat" class="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
-                        クラス展示
+                        自活
                     </span>
-                    <h3 id="modal-booth-name" class="font-black text-slate-900 text-base">1-1 呪われた廃校舎</h3>
+                    <h3 id="modal-booth-name" class="font-black text-slate-900 text-base">1-8 呪われた廃校舎</h3>
                     <p class="text-xs font-bold text-slate-500">チェックイン成功！</p>
                 </div>
 
@@ -523,16 +488,13 @@
     <script>
         // --- BOOTH DATA DEFINITION ---
         const BOOTHS = [
-            { id: 'b1', code: '101', payload: 'bunkasai_booth_1', name: '1-1 呪われた廃校舎 (お化け屋敷)', category: 'クラス展示', location: '1階 1-1教室', points: 15, icon: 'fa-ghost', color: 'bg-purple-500' },
-            { id: 'b2', code: '102', payload: 'bunkasai_booth_2', name: '1-2 レトロ縁日 & 射的ゲーム', category: '体験・ゲーム', location: '1階 1-2教室', points: 15, icon: 'fa-bullseye', color: 'bg-amber-500' },
-            { id: 'b3', code: '201', payload: 'bunkasai_booth_3', name: '2-1 カジノロワイヤル', category: 'クラス展示', location: '2階 2-1教室', points: 15, icon: 'fa-dice', color: 'bg-emerald-500' },
-            { id: 'b4', code: '202', payload: 'bunkasai_booth_4', name: '2-2 映えフォトスポット & 迷路', category: '体験・展示', location: '2階 2-2教室', points: 15, icon: 'fa-camera', color: 'bg-pink-500' },
-            { id: 'b5', code: '301', payload: 'bunkasai_booth_5', name: '3-1 チュロス & タピオカカフェ', category: '食品模擬店', location: '中庭テント 1番', points: 20, icon: 'fa-mug-hot', color: 'bg-orange-500' },
-            { id: 'b6', code: '302', payload: 'bunkasai_booth_6', name: '3-2 絶品焼きそば & たこ焼き', category: '食品模擬店', location: '中庭テント 2番', points: 20, icon: 'fa-utensils', color: 'bg-red-500' },
-            { id: 'b7', code: 'stage1', payload: 'bunkasai_booth_7', name: '吹奏楽部 スペシャルステージ', category: '部活・ステージ', location: '体育館', points: 20, icon: 'fa-music', color: 'bg-blue-500' },
-            { id: 'b8', code: 'stage2', payload: 'bunkasai_booth_8', name: '軽音部 文化祭ライブ 2026', category: '部活・ステージ', location: '講堂', points: 20, icon: 'fa-guitar', color: 'bg-indigo-500' },
-            { id: 'b9', code: 'art', payload: 'bunkasai_booth_9', name: '美術部 黒板アート & 作品展', category: '部活展示', location: '3階 美術室', points: 10, icon: 'fa-palette', color: 'bg-teal-500' },
-            { id: 'b10', code: 'honbu', payload: 'bunkasai_booth_10', name: '生徒会本部 チャレンジクイズ', category: '本部企画', location: '1階 本部前', points: 10, icon: 'fa-award', color: 'bg-yellow-500' }
+            { id: 'b1', code: '10179', payload: 'bunkasai_booth_1', name: '1-1 American Diner', category: '自活', location: '西校舎1階 選択A', points: 15},
+            { id: 'b2', code: '10279', payload: 'bunkasai_booth_2', name: '1-2 キッキングスナイパー', category: '自活', location: '第1体育館（ステージ側）', points: 15},
+            { id: 'b3', code: '20179', payload: 'bunkasai_booth_3', name: '1-3 人生逆転ゲーム', category: '自活', location: '2階 3-7教室', points: 15},
+            { id: 'b4', code: '20279', payload: 'bunkasai_booth_4', name: '1-4 格付けチェック 三流米東生を暴き出せ', category: '自活', location: '2階 3-3、3-4教室', points: 15},
+            { id: 'b5', code: '30179', payload: 'bunkasai_booth_5', name: '1-5 カラダ探し', category: '自活', location: '1階 選択A教室', points: 15},
+            { id: 'b6', code: '30279', payload: 'bunkasai_booth_6', name: '1-6 性別逆転メイド＆執事カフェ', category: '自活', location: '2階 3-6教室', points: 15},
+            { id: 'b10', code: 'honbu', payload: 'bunkasai_booth_7', name: '1-7 カジノ', category: '自活', location: '2階 3-1教室', points: 15}  
         ];
 
         // --- MOCK LEADERBOARD DATA ---
@@ -608,30 +570,11 @@
             document.getElementById('dash-visited-count').textContent = appState.user.visitedBooths.length;
             document.getElementById('dash-total-booths').textContent = BOOTHS.length;
 
-            // Milestone Progress
-            const pts = appState.user.points;
-            const percentage = Math.min(100, Math.round((pts / 100) * 100));
-            document.getElementById('dash-progress-bar').style.width = percentage + '%';
-
-            const nextTargetEl = document.getElementById('dash-next-target');
-            if (pts >= 100) {
-                nextTargetEl.textContent = '🎉 全ての目標をクリア！';
-            } else if (pts >= 60) {
-                nextTargetEl.textContent = `あと ${100 - pts}pt で「完走記念品」`;
-            } else if (pts >= 30) {
-                nextTargetEl.textContent = `あと ${60 - pts}pt で「福引券1枚」`;
-            } else {
-                nextTargetEl.textContent = `あと ${30 - pts}pt で「駄菓子」`;
-            }
-
             // Milestone badges
             const ms1 = document.getElementById('ms-1');
             const ms2 = document.getElementById('ms-2');
             const ms3 = document.getElementById('ms-3');
 
-            if (pts >= 30) ms1.className = "bg-amber-100 border-2 border-amber-400 p-2 rounded-xl transition text-amber-900 font-bold shadow-sm";
-            if (pts >= 60) ms2.className = "bg-amber-100 border-2 border-amber-400 p-2 rounded-xl transition text-amber-900 font-bold shadow-sm";
-            if (pts >= 100) ms3.className = "bg-amber-100 border-2 border-amber-400 p-2 rounded-xl transition text-amber-900 font-bold shadow-sm";
 
             // User Rank calculation
             renderLeaderboard();
