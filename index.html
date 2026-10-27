@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>文化祭 QRスタンプラリー</title>
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons (CDN) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Noto Sans JP) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- html5-qrcode for Camera Scanning -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    <!-- canvas-confetti for Celebration Effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- qrcode.js for Admin QR Code Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'sans-serif'],
+                    },
+                    colors: {
+                        festive: {
+                            red: '#e63946',
+                            gold: '#f77f00',
+                            navy: '#1d3557',
+                            light: '#f8f9fa'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Bottom Navigation safe area for iOS */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 1rem);
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        #reader video {
+            object-fit: cover !important;
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-rose-500 selection:text-white">
+
+    <!-- APP CONTAINER (Mobile Frame Max-Width for Desktop Compatibility) -->
+    <div class="w-full max-w-md mx-auto bg-slate-50 min-h-screen shadow-2xl flex flex-col relative pb-20">
+
+        <!-- HEADER -->
+        <header class="bg-gradient-to-r from-rose-600 via-orange-500 to-amber-500 text-white p-4 sticky top-0 z-30 shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-yellow-300 font-extrabold text-lg border border-white/30">
+                        <i class="fa-solid fa-stamp"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-rose-100 block">文化祭公式企画</span>
+                        <h1 class="font-black text-base leading-tight tracking-tight">QRポイントラリー</h1>
+                    </div>
+                </div>
+                
+                <!-- User Quick Info Badge -->
+                <div onclick="openUserModal()" class="bg-white/15 hover:bg-white/25 transition cursor-pointer px-3 py-1.5 rounded-full backdrop-blur-md border border-white/20 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-user text-amber-300"></i>
+                    <div class="text-right">
+                        <span id="header-user-name" class="block text-xs font-bold leading-none truncate max-w-[80px]">未登録</span>
+                        <span class="text-[10px] text-amber-200 font-extrabold" id="header-user-points">0 pt</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 p-4 space-y-5 overflow-y-auto">
+
+            <!-- TAB 1: HOME DASHBOARD -->
+            <section id="tab-home" class="tab-content space-y-5">
+                
+                <!-- Welcome Banner & Total Score Card -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-5 shadow-xl relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 text-slate-700/20 text-9xl font-black pointer-events-none">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    
+                    <div class="relative z-10 space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span id="dash-grade-class" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/80 text-white inline-block mb-1">
+                                    クラス未設定
+                                </span>
+                                <h2 id="dash-nickname" class="text-xl font-black tracking-tight">ゲスト さん</h2>
+                            </div>
+                            <span class="bg-amber-400/20 border border-amber-400/40 text-amber-300 font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-crown text-amber-400"></i>
+                                順位: <span id="dash-rank-val" class="font-black">--</span>位
+                            </span>
+                        </div>
+
+                        <!-- Current Score Display -->
+                        <div class="pt-2 border-t border-slate-700/80 flex items-baseline justify-between">
+                            <span class="text-xs text-slate-400 font-medium">現在の合計ポイント</span>
+                            <div class="flex items-baseline gap-1">
+                                <span id="dash-points-val" class="text-4xl font-black text-amber-400 tracking-tight">0</span>
+                                <span class="text-sm font-bold text-slate-300">pt</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Milestone Progress Card -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-gift text-rose-500"></i> 景品交換ライン
+                        </h3>
+                        <span id="dash-next-target" class="text-[11px] font-bold text-rose-600">あと 30pt で「駄菓子」</span>
+                    </div>
+
+                    <!-- Progress Bar Track -->
+                    <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-200">
+                        <div id="dash-progress-bar" class="bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400 h-full rounded-full transition-all duration-500 w-0"></div>
+                    </div>
+
+                    <!-- Milestone Items Grid -->
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs pt-1">
+                        <div id="ms-1" class="bg-slate-50 border border-slate-200 p-2 rounded-xl transition">
+                            <span class="block text-base mb-0.5">🍬</span>
+                            <span class="font-extrabold text-slate-700 block text-[11px]">30 pt</span>
+                            <span class="text-[9px] text-slate-500 block">駄菓子セット</span>
+                        </div>
+                        <div id="ms-2" class="bg-slate-50 border border-slate-200 p-2 rounded-xl transition">
+                            <span class="block text-base mb-0.5">🎟️</span>
+                            <span class="font-extrabold text-slate-700 block text-[11px]">60 pt</span>
+                            <span class="text-[9px] text-slate-500 block">福引券 1枚</span>
+                        </div>
+                        <div id="ms-3" class="bg-slate-50 border border-slate-200 p-2 rounded-xl transition">
+                            <span class="block text-base mb-0.5">👑</span>
+                            <span class="font-extrabold text-slate-700 block text-[11px]">100 pt</span>
+                            <span class="text-[9px] text-slate-500 block">完走記念品</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="switchTab('scan'); setScanSubTab('qr');" class="bg-gradient-to-r from-rose-500 to-orange-500 text-white font-bold p-4 rounded-2xl shadow-lg shadow-rose-500/20 hover:opacity-95 transition flex flex-col items-center justify-center gap-2 group">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-xl group-hover:scale-110 transition">
+                            <i class="fa-solid fa-qrcode"></i>
+                        </div>
+                        <span class="text-xs">QRをスキャンする</span>
+                    </button>
+
+                    <button onclick="switchTab('scan'); setScanSubTab('passcode');" class="bg-white border border-slate-200 text-slate-700 font-bold p-4 rounded-2xl shadow-sm hover:bg-slate-50 transition flex flex-col items-center justify-center gap-2 group">
+                        <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xl group-hover:scale-110 transition">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                        <span class="text-xs">合言葉・暗号を入力</span>
+                    </button>
+                </div>
+
+                <!-- Booth Progress Summary -->
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 block">巡回ステータス</span>
+                        <div class="text-sm font-extrabold text-slate-800 mt-0.5">
+                            <span id="dash-visited-count" class="text-rose-600 text-lg font-black">0</span> / <span id="dash-total-booths">10</span> ブース達成
+                        </div>
+                    </div>
+                    <button onclick="switchTab('booths')" class="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl hover:bg-rose-100 transition">
+                        ブース一覧を見る <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                    </button>
+                </div>
+
+            </section>
+
+            <!-- TAB 2: QR SCANNER & PASSCODE -->
+            <section id="tab-scan" class="tab-content hidden space-y-4">
+                
+                <!-- Sub Tab Switcher (QR Scan vs Passcode Input) -->
+                <div class="flex rounded-xl bg-slate-200 p-1 font-bold text-xs">
+                    <button id="btn-subtab-qr" onclick="setScanSubTab('qr')" class="flex-1 py-2.5 rounded-lg bg-white shadow-sm text-rose-600 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-camera"></i> QRカメラ読み取り
+                    </button>
+                    <button id="btn-subtab-passcode" onclick="setScanSubTab('passcode')" class="flex-1 py-2.5 rounded-lg text-slate-600 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-keyboard"></i> 合言葉・暗号入力
+                    </button>
+                </div>
+
+                <!-- SUB TAB CONTENT A: CAMERA SCANNER -->
+                <div id="scan-container-qr" class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center space-y-3">
+                        <p class="text-xs font-bold text-slate-600">
+                            ブースに掲載されているQRコードを枠内に合わせてください
+                        </p>
+                        
+                        <!-- Camera Viewport Box -->
+                        <div class="relative w-full aspect-square max-w-[280px] mx-auto bg-slate-900 rounded-2xl overflow-hidden border-2 border-dashed border-rose-400 shadow-inner flex items-center justify-center">
+                            <div id="reader" class="w-full h-full"></div>
+                            
+                            <!-- Placeholder Overlay before Camera Activation -->
+                            <div id="scanner-placeholder" class="absolute inset-0 flex flex-col items-center justify-center p-4 bg-slate-900/90 text-white space-y-3">
+                                <i class="fa-solid fa-camera-retro text-4xl text-rose-400 animate-bounce"></i>
+                                <span class="text-xs font-bold">カメラ起動ボタンを押してください</span>
+                                <button onclick="startCameraScanner()" class="bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-extrabold text-xs px-5 py-2.5 rounded-full shadow-lg transition">
+                                    <i class="fa-solid fa-power-off mr-1.5"></i> カメラを起動
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Scanner Control Buttons -->
+                        <div id="scanner-controls" class="hidden flex items-center justify-center gap-3 pt-2">
+                            <button onclick="stopCameraScanner()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-stop text-rose-500"></i> カメラ停止
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- OS / Troubleshooting Tips -->
+                    <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-3.5 text-xs text-amber-900 space-y-1.5">
+                        <div class="font-bold flex items-center gap-1.5 text-amber-800">
+                            <i class="fa-solid fa-circle-info text-amber-500"></i> カメラが動かない場合のチェック
+                        </div>
+                        <ul class="list-disc list-inside text-[11px] text-amber-800/90 space-y-1 pl-1">
+                            <li>ブラウザの「カメラアクセス許可」をONにしてください。</li>
+                            <li><strong>LINEやSNSアプリ内ブラウザ</strong>で開いている場合は、Safari または Chrome に切り替えて開いてください。</li>
+                            <li>うまく読み取れない場合は「合言葉・暗号入力」をお使いください。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- SUB TAB CONTENT B: PASSCODE INPUT -->
+                <div id="scan-container-passcode" class="hidden space-y-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="text-center space-y-1">
+                            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm">ブース記載の暗号・合言葉を入力</h3>
+                            <p class="text-xs text-slate-500">各教室・模擬店の掲示物に書いてある3桁のコードを入力</p>
+                        </div>
+
+                        <form onsubmit="handlePasscodeSubmit(event)" class="space-y-3">
+                            <div>
+                                <input type="text" id="passcode-input" placeholder="例: 101" maxlength="10" required autocomplete="off" class="w-full text-center text-2xl font-black tracking-widest bg-slate-50 border border-slate-300 rounded-xl py-3 px-4 focus:ring-2 focus:ring-rose-500 focus:bg-white focus:outline-none uppercase">
+                            </div>
+                            <button type="submit" class="w-full bg-gradient-to-r from-rose-500 to-orange-500 hover:opacity-95 text-white font-extrabold text-xs py-3 rounded-xl shadow-md transition">
+                                チェックイン（ポイント獲得）
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- TAB 3: BOOTH LIST -->
+            <section id="tab-booths" class="tab-content hidden space-y-4">
+                
+                <!-- Booth Filters -->
+                <div class="flex justify-between items-center">
+                    <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
+                        <i class="fa-solid fa-store text-rose-500"></i> 文化祭ブース一覧
+                    </h2>
+                    
+                    <div class="inline-flex rounded-lg bg-slate-200 p-0.5 text-xs font-bold">
+                        <button onclick="filterBooths('all')" id="btn-booth-filter-all" class="px-2.5 py-1 rounded-md bg-white shadow-sm text-slate-800">すべて</button>
+                        <button onclick="filterBooths('unvisited')" id="btn-booth-filter-unvisited" class="px-2.5 py-1 rounded-md text-slate-500">未訪問</button>
+                    </div>
+                </div>
+
+                <!-- Booth Cards Container -->
+                <div id="booths-container" class="space-y-3">
+                    <!-- Dynamic rendering via JS -->
+                </div>
+
+            </section>
+
+            <!-- TAB 4: LEADERBOARD / RANKING -->
+            <section id="tab-ranking" class="tab-content hidden space-y-4">
+                
+                <!-- Ranking Banner -->
+                <div class="bg-gradient-to-r from-indigo-900 to-purple-900 text-white rounded-2xl p-4 shadow-md flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] text-indigo-300 font-bold uppercase tracking-wider block">リアルタイムランキング</span>
+                        <h2 class="font-black text-base flex items-center gap-1.5">
+                            <i class="fa-solid fa-trophy text-amber-400"></i> ポイント上位チャレンジャー
+                        </h2>
+                    </div>
+                    <button onclick="renderLeaderboard()" class="bg-white/10 hover:bg-white/20 text-xs font-bold px-3 py-1.5 rounded-full backdrop-blur-sm transition border border-white/20">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> 更新
+                    </button>
+                </div>
+
+                <!-- My Current Rank Sticky Display -->
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-2.5">
+                        <div id="my-rank-badge" class="w-8 h-8 rounded-full bg-amber-400 text-slate-900 font-black text-xs flex items-center justify-center shadow-sm">
+                            -
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-amber-800 font-bold block">あなたの現在地</span>
+                            <span id="my-rank-name" class="text-xs font-extrabold text-slate-800">ゲスト さん</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span id="my-rank-pts" class="text-base font-black text-rose-600">0</span> <span class="text-xs font-bold text-slate-500">pt</span>
+                    </div>
+                </div>
+
+                <!-- Leaderboard List -->
+                <div class="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 shadow-sm overflow-hidden" id="leaderboard-list">
+                    <!-- Dynamic ranking rendering -->
+                </div>
+
+            </section>
+
+            <!-- TAB 5: ADMIN / COMMITTEE PANEL -->
+            <section id="tab-admin" class="tab-content hidden space-y-4">
+                
+                <!-- Lock / Auth Screen (if locked) -->
+                <div id="admin-lock-screen" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm text-center space-y-4">
+                    <div class="w-12 h-12 bg-slate-100 text-slate-700 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-extrabold text-slate-800 text-sm">実行委員会（管理モード）</h2>
+                        <p class="text-xs text-slate-500">パスコードを入力してログインしてください（初期値: 1234）</p>
+                    </div>
+
+                    <form onsubmit="unlockAdmin(event)" class="space-y-3 max-w-xs mx-auto">
+                        <input type="password" id="admin-passcode-input" placeholder="パスコード" maxlength="10" required class="w-full text-center text-lg font-bold bg-slate-50 border border-slate-300 rounded-xl py-2.5 px-4 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl transition">
+                            ロック解除
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Admin Dashboard (if unlocked) -->
+                <div id="admin-dashboard" class="hidden space-y-4">
+                    <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] text-rose-400 font-bold block">実行委員会 管理ポータル</span>
+                            <h2 class="font-black text-sm">QRコード発行 & データ管理</h2>
+                        </div>
+                        <button onclick="lockAdmin()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg border border-slate-700">
+                            ログアウト
+                        </button>
+                    </div>
+
+                    <!-- QR Generator Selection -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
+                        <h3 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-print text-rose-500"></i> ブース印刷用QRカード生成
+                        </h3>
+
+                        <select id="admin-booth-select" onchange="renderAdminQRCard()" class="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-800 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                            <!-- Dynamic Options -->
+                        </select>
+
+                        <!-- Printable Card Preview -->
+                        <div id="admin-print-card" class="bg-white border-2 border-slate-800 rounded-2xl p-5 text-center space-y-3 shadow-lg my-3">
+                            <div class="border-b border-slate-200 pb-2">
+                                <span class="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md" id="print-booth-category">クラス展示</span>
+                                <h4 class="font-black text-base text-slate-900 mt-1" id="print-booth-title">1-1 お化け屋敷</h4>
+                                <p class="text-[11px] font-bold text-slate-500" id="print-booth-loc">1階 1-1教室</p>
+                            </div>
+
+                            <div class="flex justify-center my-2">
+                                <div id="admin-qrcode-box" class="p-2 bg-white rounded-xl border border-slate-200"></div>
+                            </div>
+
+                            <div class="bg-slate-100 p-2.5 rounded-xl space-y-0.5">
+                                <span class="text-[10px] text-slate-500 block font-bold">手入力用 暗号コード</span>
+                                <span class="text-xl font-black text-slate-900 tracking-widest block font-mono" id="print-booth-code">101</span>
+                            </div>
+
+                            <div class="text-[10px] text-amber-700 font-extrabold bg-amber-50 p-2 rounded-lg border border-amber-200">
+                                獲得ポイント: +<span id="print-booth-pts">15</span> pt
+                            </div>
+                        </div>
+
+                        <button onclick="window.print()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2.5 rounded-xl shadow transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-print"></i> このQRコードを印刷する
+                        </button>
+                    </div>
+
+                    <!-- Reset Options -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
+                        <h3 class="font-bold text-slate-800 text-xs text-rose-600 flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i> 危険な操作
+                        </h3>
+                        <p class="text-[11px] text-slate-500">この端末の参加データ（ユーザー情報・獲得ポイント）をすべて初期化します。</p>
+                        <button onclick="resetAllData()" class="w-full bg-slate-100 hover:bg-rose-50 text-rose-600 font-bold text-xs py-2.5 rounded-xl border border-rose-200 transition">
+                            データ全リセット（テスト用）
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- BOTTOM NAVIGATION BAR -->
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-md border-t border-slate-200 z-30 pb-safe shadow-lg">
+            <div class="grid grid-cols-5 text-center text-[10px] font-bold text-slate-500 py-1.5">
+                <button onclick="switchTab('home')" id="nav-home" class="nav-btn p-1.5 flex flex-col items-center gap-1 text-rose-600">
+                    <i class="fa-solid fa-house text-lg"></i>
+                    <span>ホーム</span>
+                </button>
+                <button onclick="switchTab('scan')" id="nav-scan" class="nav-btn p-1.5 flex flex-col items-center gap-1 hover:text-rose-600">
+                    <i class="fa-solid fa-qrcode text-lg"></i>
+                    <span>スキャン</span>
+                </button>
+                <button onclick="switchTab('booths')" id="nav-booths" class="nav-btn p-1.5 flex flex-col items-center gap-1 hover:text-rose-600">
+                    <i class="fa-solid fa-store text-lg"></i>
+                    <span>ブース</span>
+                </button>
+                <button onclick="switchTab('ranking')" id="nav-ranking" class="nav-btn p-1.5 flex flex-col items-center gap-1 hover:text-rose-600">
+                    <i class="fa-solid fa-trophy text-lg"></i>
+                    <span>順位</span>
+                </button>
+                <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn p-1.5 flex flex-col items-center gap-1 hover:text-rose-600">
+                    <i class="fa-solid fa-gear text-lg"></i>
+                    <span>管理</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- MODAL 1: USER REGISTRATION -->
+        <div id="user-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl space-y-4 animate-scale-up">
+                <div class="text-center space-y-1">
+                    <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <h3 class="font-extrabold text-slate-800 text-base">参加者エントリー</h3>
+                    <p class="text-xs text-slate-500">文化祭スタンプラリーを始めましょう！</p>
+                </div>
+
+                <form onsubmit="saveUserProfile(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">ニックネーム</label>
+                        <input type="text" id="reg-nickname" placeholder="例: たろう" maxlength="12" required class="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">学年・クラス / 来場区分</label>
+                        <select id="reg-grade" class="w-full text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                            <option value="1年生">1年生</option>
+                            <option value="2年生">2年生</option>
+                            <option value="3年生">3年生</option>
+                            <option value="保護者/一般">保護者・一般来場者</option>
+                            <option value="他校生">他校生</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-rose-500 to-orange-500 text-white font-extrabold text-xs py-3 rounded-xl shadow-lg hover:opacity-95 transition">
+                        登録してスタート！
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL 2: SUCCESS CHECK-IN REWARD -->
+        <div id="reward-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl text-center space-y-4 relative overflow-hidden">
+                <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-rose-500 text-white rounded-full flex items-center justify-center mx-auto text-2xl shadow-lg animate-bounce">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+
+                <div class="space-y-1">
+                    <span id="modal-booth-cat" class="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
+                        クラス展示
+                    </span>
+                    <h3 id="modal-booth-name" class="font-black text-slate-900 text-base">1-1 呪われた廃校舎</h3>
+                    <p class="text-xs font-bold text-slate-500">チェックイン成功！</p>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl space-y-0.5">
+                    <span class="text-[10px] text-amber-800 font-bold">獲得ポイント</span>
+                    <div class="text-3xl font-black text-amber-500" id="modal-points-added">+15 pt</div>
+                </div>
+
+                <button onclick="closeRewardModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs py-3 rounded-xl shadow transition">
+                    OK！次を探す
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL 3: GENERIC MESSAGE DIALOG -->
+        <div id="msg-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl text-center space-y-3">
+                <h3 id="msg-modal-title" class="font-extrabold text-slate-800 text-sm">お知らせ</h3>
+                <p id="msg-modal-body" class="text-xs text-slate-600 leading-relaxed"></p>
+                <button onclick="closeMsgModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs py-2.5 rounded-xl transition">
+                    閉じる
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- BOOTH DATA DEFINITION ---
+        const BOOTHS = [
+            { id: 'b1', code: '101', payload: 'bunkasai_booth_1', name: '1-1 呪われた廃校舎 (お化け屋敷)', category: 'クラス展示', location: '1階 1-1教室', points: 15, icon: 'fa-ghost', color: 'bg-purple-500' },
+            { id: 'b2', code: '102', payload: 'bunkasai_booth_2', name: '1-2 レトロ縁日 & 射的ゲーム', category: '体験・ゲーム', location: '1階 1-2教室', points: 15, icon: 'fa-bullseye', color: 'bg-amber-500' },
+            { id: 'b3', code: '201', payload: 'bunkasai_booth_3', name: '2-1 カジノロワイヤル', category: 'クラス展示', location: '2階 2-1教室', points: 15, icon: 'fa-dice', color: 'bg-emerald-500' },
+            { id: 'b4', code: '202', payload: 'bunkasai_booth_4', name: '2-2 映えフォトスポット & 迷路', category: '体験・展示', location: '2階 2-2教室', points: 15, icon: 'fa-camera', color: 'bg-pink-500' },
+            { id: 'b5', code: '301', payload: 'bunkasai_booth_5', name: '3-1 チュロス & タピオカカフェ', category: '食品模擬店', location: '中庭テント 1番', points: 20, icon: 'fa-mug-hot', color: 'bg-orange-500' },
+            { id: 'b6', code: '302', payload: 'bunkasai_booth_6', name: '3-2 絶品焼きそば & たこ焼き', category: '食品模擬店', location: '中庭テント 2番', points: 20, icon: 'fa-utensils', color: 'bg-red-500' },
+            { id: 'b7', code: 'stage1', payload: 'bunkasai_booth_7', name: '吹奏楽部 スペシャルステージ', category: '部活・ステージ', location: '体育館', points: 20, icon: 'fa-music', color: 'bg-blue-500' },
+            { id: 'b8', code: 'stage2', payload: 'bunkasai_booth_8', name: '軽音部 文化祭ライブ 2026', category: '部活・ステージ', location: '講堂', points: 20, icon: 'fa-guitar', color: 'bg-indigo-500' },
+            { id: 'b9', code: 'art', payload: 'bunkasai_booth_9', name: '美術部 黒板アート & 作品展', category: '部活展示', location: '3階 美術室', points: 10, icon: 'fa-palette', color: 'bg-teal-500' },
+            { id: 'b10', code: 'honbu', payload: 'bunkasai_booth_10', name: '生徒会本部 チャレンジクイズ', category: '本部企画', location: '1階 本部前', points: 10, icon: 'fa-award', color: 'bg-yellow-500' }
+        ];
+
+        // --- MOCK LEADERBOARD DATA ---
+        const MOCK_LEADERBOARD = [
+            { name: 'タクミ', gradeClass: '3年生', points: 120 },
+            { name: 'アオイ', gradeClass: '2年生', points: 110 },
+            { name: 'レン', gradeClass: '3年生', points: 100 },
+            { name: 'ヒナタ', gradeClass: '1年生', points: 90 },
+            { name: 'ユウキ', gradeClass: '2年生', points: 85 },
+            { name: 'サクラ', gradeClass: '1年生', points: 70 },
+            { name: 'ケンタ', gradeClass: '3年生', points: 65 },
+            { name: 'ミク', gradeClass: '2年生', points: 50 },
+            { name: 'ソウタ', gradeClass: '1年生', points: 40 }
+        ];
+
+        // --- APP STATE ---
+        let appState = {
+            user: {
+                nickname: '',
+                gradeClass: '1年生',
+                registered: false,
+                points: 0,
+                visitedBooths: []
+            },
+            adminUnlocked: false,
+            boothFilter: 'all'
+        };
+
+        let html5QrCodeScanner = null;
+
+        // --- LOCAL STORAGE HELPERS ---
+        function loadState() {
+            const saved = localStorage.getItem('fes_stamp_ラリー_data_v1');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appState.user = { ...appState.user, ...parsed };
+                } catch(e) {
+                    console.error("Failed to load user state", e);
+                }
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('fes_stamp_ラリー_data_v1', JSON.stringify(appState.user));
+            updateUI();
+        }
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+
+            if (!appState.user.registered) {
+                openUserModal();
+            }
+
+            updateUI();
+            renderBooths();
+            renderLeaderboard();
+            setupAdminDropdown();
+        });
+
+        // --- UI REFRESH LOGIC ---
+        function updateUI() {
+            // Header Info
+            document.getElementById('header-user-name').textContent = appState.user.nickname || '未登録';
+            document.getElementById('header-user-points').textContent = appState.user.points + ' pt';
+
+            // Dashboard Info
+            document.getElementById('dash-nickname').textContent = (appState.user.nickname || 'ゲスト') + ' さん';
+            document.getElementById('dash-grade-class').textContent = appState.user.gradeClass || '未設定';
+            document.getElementById('dash-points-val').textContent = appState.user.points;
+            document.getElementById('dash-visited-count').textContent = appState.user.visitedBooths.length;
+            document.getElementById('dash-total-booths').textContent = BOOTHS.length;
+
+            // Milestone Progress
+            const pts = appState.user.points;
+            const percentage = Math.min(100, Math.round((pts / 100) * 100));
+            document.getElementById('dash-progress-bar').style.width = percentage + '%';
+
+            const nextTargetEl = document.getElementById('dash-next-target');
+            if (pts >= 100) {
+                nextTargetEl.textContent = '🎉 全ての目標をクリア！';
+            } else if (pts >= 60) {
+                nextTargetEl.textContent = `あと ${100 - pts}pt で「完走記念品」`;
+            } else if (pts >= 30) {
+                nextTargetEl.textContent = `あと ${60 - pts}pt で「福引券1枚」`;
+            } else {
+                nextTargetEl.textContent = `あと ${30 - pts}pt で「駄菓子」`;
+            }
+
+            // Milestone badges
+            const ms1 = document.getElementById('ms-1');
+            const ms2 = document.getElementById('ms-2');
+            const ms3 = document.getElementById('ms-3');
+
+            if (pts >= 30) ms1.className = "bg-amber-100 border-2 border-amber-400 p-2 rounded-xl transition text-amber-900 font-bold shadow-sm";
+            if (pts >= 60) ms2.className = "bg-amber-100 border-2 border-amber-400 p-2 rounded-xl transition text-amber-900 font-bold shadow-sm";
+            if (pts >= 100) ms3.className = "bg-amber-100 border-2 border-amber-400 p-2 rounded-xl transition text-amber-900 font-bold shadow-sm";
+
+            // User Rank calculation
+            renderLeaderboard();
+        }
+
+        // --- TAB NAVIGATION ---
+        function switchTab(tabId) {
+            // Stop camera if leaving scan tab
+            if (tabId !== 'scan') {
+                stopCameraScanner();
+            }
+
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show target tab
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.remove('hidden');
+
+            // Nav buttons styling
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-rose-600');
+                btn.classList.add('text-slate-500');
+            });
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.add('text-rose-600');
+                activeBtn.classList.remove('text-slate-500');
+            }
+
+            if (tabId === 'booths') renderBooths();
+            if (tabId === 'ranking') renderLeaderboard();
+        }
+
+        // --- SUB-TAB FOR SCANNER ---
+        function setScanSubTab(subTab) {
+            const btnQr = document.getElementById('btn-subtab-qr');
+            const btnPasscode = document.getElementById('btn-subtab-passcode');
+            const containerQr = document.getElementById('scan-container-qr');
+            const containerPasscode = document.getElementById('scan-container-passcode');
+
+            if (subTab === 'qr') {
+                btnQr.className = 'flex-1 py-2.5 rounded-lg bg-white shadow-sm text-rose-600 transition flex items-center justify-center gap-1.5';
+                btnPasscode.className = 'flex-1 py-2.5 rounded-lg text-slate-600 transition flex items-center justify-center gap-1.5';
+                containerQr.classList.remove('hidden');
+                containerPasscode.classList.add('hidden');
+            } else {
+                stopCameraScanner();
+                btnPasscode.className = 'flex-1 py-2.5 rounded-lg bg-white shadow-sm text-rose-600 transition flex items-center justify-center gap-1.5';
+                btnQr.className = 'flex-1 py-2.5 rounded-lg text-slate-600 transition flex items-center justify-center gap-1.5';
+                containerPasscode.classList.remove('hidden');
+                containerQr.classList.add('hidden');
+            }
+        }
+
+        // --- CAMERA SCANNER LOGIC ---
+        function startCameraScanner() {
+            document.getElementById('scanner-placeholder').classList.add('hidden');
+            document.getElementById('scanner-controls').classList.remove('hidden');
+
+            if (!html5QrCodeScanner) {
+                html5QrCodeScanner = new Html5Qrcode("reader");
+            }
+
+            const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+
+            html5QrCodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => {
+                console.error("Camera start error:", err);
+                showMsgModal("カメラ起動エラー", "カメラの起動に失敗しました。ブラウザのカメラ権限を許可するか、「合言葉入力」をお試しください。");
+                stopCameraScanner();
+            });
+        }
+
+        function stopCameraScanner() {
+            if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
+                html5QrCodeScanner.stop().then(() => {
+                    document.getElementById('scanner-placeholder').classList.remove('hidden');
+                    document.getElementById('scanner-controls').classList.add('hidden');
+                }).catch(err => console.error(err));
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // Find booth matching payload or code
+            const booth = BOOTHS.find(b => b.payload === decodedText || b.code.toUpperCase() === decodedText.toUpperCase() || decodedText.includes(b.payload));
+
+            if (booth) {
+                processCheckIn(booth);
+            } else {
+                showMsgModal("無効なQRコード", "文化祭スタンプラリー対象外のQRコードです。");
+            }
+        }
+
+        function onScanFailure(error) {
+            // Silent fail for frame scans
+        }
+
+        // --- PASSCODE FORM HANDLER ---
+        function handlePasscodeSubmit(e) {
+            e.preventDefault();
+            const inputVal = document.getElementById('passcode-input').value.trim().toUpperCase();
+            
+            const booth = BOOTHS.find(b => b.code.toUpperCase() === inputVal);
+            if (booth) {
+                processCheckIn(booth);
+                document.getElementById('passcode-input').value = '';
+            } else {
+                showMsgModal("コードエラー", "該当する合言葉・暗号が見つかりません。入力内容を確認してください。");
+            }
+        }
+
+        // --- CHECK-IN PROCESSING ---
+        function processCheckIn(booth) {
+            if (appState.user.visitedBooths.includes(booth.id)) {
+                showMsgModal("獲得済み", `「${booth.name}」のポイントはすでに獲得しています！`);
+                return;
+            }
+
+            // Grant Points & Record Visit
+            appState.user.visitedBooths.push(booth.id);
+            appState.user.points += booth.points;
+            saveState();
+
+            // Confetti Animation
+            try {
+                confetti({
+                    particleCount: 90,
+                    spread: 60,
+                    origin: { y: 0.6 }
+                });
+            } catch(e){}
+
+            // Show Reward Modal
+            document.getElementById('modal-booth-cat').textContent = booth.category;
+            document.getElementById('modal-booth-name').textContent = booth.name;
+            document.getElementById('modal-points-added').textContent = '+' + booth.points + ' pt';
+            document.getElementById('reward-modal').classList.remove('hidden');
+        }
+
+        function closeRewardModal() {
+            document.getElementById('reward-modal').classList.add('hidden');
+            switchTab('home');
+        }
+
+        // --- RENDER BOOTHS LIST ---
+        function filterBooths(type) {
+            appState.boothFilter = type;
+            const btnAll = document.getElementById('btn-booth-filter-all');
+            const btnUnvisited = document.getElementById('btn-booth-filter-unvisited');
+
+            if (type === 'all') {
+                btnAll.className = 'px-2.5 py-1 rounded-md bg-white shadow-sm text-slate-800';
+                btnUnvisited.className = 'px-2.5 py-1 rounded-md text-slate-500';
+            } else {
+                btnUnvisited.className = 'px-2.5 py-1 rounded-md bg-white shadow-sm text-slate-800';
+                btnAll.className = 'px-2.5 py-1 rounded-md text-slate-500';
+            }
+            renderBooths();
+        }
+
+        function renderBooths() {
+            const container = document.getElementById('booths-container');
+            container.innerHTML = '';
+
+            BOOTHS.forEach(booth => {
+                const isVisited = appState.user.visitedBooths.includes(booth.id);
+
+                if (appState.boothFilter === 'unvisited' && isVisited) return;
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl p-4 border transition ${isVisited ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 shadow-sm'}`;
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl ${booth.color} text-white flex items-center justify-center shrink-0 shadow-sm">
+                                <i class="fa-solid ${booth.icon} text-base"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-1.5 mb-0.5">
+                                    <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">${booth.category}</span>
+                                    <span class="text-[10px] font-bold text-slate-400"><i class="fa-solid fa-location-dot mr-0.5"></i>${booth.location}</span>
+                                </div>
+                                <h3 class="font-bold text-slate-800 text-xs line-clamp-1">${booth.name}</h3>
+                            </div>
+                        </div>
+
+                        <div class="text-right shrink-0">
+                            ${isVisited ? `
+                                <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 font-extrabold text-[11px] px-2.5 py-1 rounded-full border border-emerald-200">
+                                    <i class="fa-solid fa-check"></i> 達成
+                                </span>
+                            ` : `
+                                <span class="bg-amber-100 text-amber-800 font-black text-[11px] px-2.5 py-1 rounded-full">
+                                    +${booth.points} pt
+                                </span>
+                            `}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            if (container.children.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-flag-checkered text-3xl mb-2"></i>
+                        <p class="text-xs font-bold">全てのブースを制覇しました！</p>
+                    </div>
+                `;
+            }
+        }
+
+        // --- RENDER LEADERBOARD ---
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboard-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // Merge mock data with current user
+            let list = MOCK_LEADERBOARD.map(u => ({ ...u, isMe: false }));
+            
+            // Add or update current user in list
+            const currentUserEntry = {
+                name: (appState.user.nickname || 'あなた') + ' (自分)',
+                gradeClass: appState.user.gradeClass,
+                points: appState.user.points,
+                isMe: true
+            };
+
+            list.push(currentUserEntry);
+            list.sort((a, b) => b.points - a.points);
+
+            // Calculate my rank
+            const myRankIndex = list.findIndex(u => u.isMe);
+            const myRank = myRankIndex + 1;
+
+            document.getElementById('dash-rank-val').textContent = myRank;
+            document.getElementById('my-rank-badge').textContent = myRank;
+            document.getElementById('my-rank-name').textContent = appState.user.nickname || 'ゲスト';
+            document.getElementById('my-rank-pts').textContent = appState.user.points;
+
+            // Render top 10
+            list.slice(0, 10).forEach((user, idx) => {
+                const rank = idx + 1;
+                let rankBadge = `<span class="w-6 h-6 flex items-center justify-center font-extrabold text-xs rounded-full bg-slate-100 text-slate-500">${rank}</span>`;
+
+                if (rank === 1) rankBadge = `<span class="w-6 h-6 flex items-center justify-center font-extrabold text-xs rounded-full bg-amber-400 text-slate-900 shadow-sm">1</span>`;
+                if (rank === 2) rankBadge = `<span class="w-6 h-6 flex items-center justify-center font-extrabold text-xs rounded-full bg-slate-300 text-slate-800 shadow-sm">2</span>`;
+                if (rank === 3) rankBadge = `<span class="w-6 h-6 flex items-center justify-center font-extrabold text-xs rounded-full bg-amber-600 text-white shadow-sm">3</span>`;
+
+                const row = document.createElement('div');
+                row.className = `p-3 flex items-center justify-between ${user.isMe ? 'bg-rose-50/90 font-bold border-l-4 border-rose-500' : ''}`;
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        ${rankBadge}
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-bold block">${user.gradeClass}</span>
+                            <span class="text-xs text-slate-800 ${user.isMe ? 'text-rose-700 font-black' : 'font-bold'}">${user.name}</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black text-slate-700">${user.points} <span class="text-[10px] font-normal text-slate-400">pt</span></span>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // --- USER PROFILE MODAL HANDLERS ---
+        function openUserModal() {
+            document.getElementById('reg-nickname').value = appState.user.nickname || '';
+            document.getElementById('reg-grade').value = appState.user.gradeClass || '1年生';
+            document.getElementById('user-modal').classList.remove('hidden');
+        }
+
+        function saveUserProfile(e) {
+            e.preventDefault();
+            const nickname = document.getElementById('reg-nickname').value.trim();
+            const grade = document.getElementById('reg-grade').value;
+
+            if (nickname) {
+                appState.user.nickname = nickname;
+                appState.user.gradeClass = grade;
+                appState.user.registered = true;
+                saveState();
+                document.getElementById('user-modal').classList.add('hidden');
+            }
+        }
+
+        // --- ADMIN PANEL HANDLERS ---
+        function unlockAdmin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-passcode-input').value;
+            if (pass === '1234') { // Default passcode
+                appState.adminUnlocked = true;
+                document.getElementById('admin-lock-screen').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                renderAdminQRCard();
+            } else {
+                showMsgModal("パスコード違い", "管理者パスコードが正しくありません。");
+            }
+        }
+
+        function lockAdmin() {
+            appState.adminUnlocked = false;
+            document.getElementById('admin-lock-screen').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('admin-passcode-input').value = '';
+        }
+
+        function setupAdminDropdown() {
+            const select = document.getElementById('admin-booth-select');
+            select.innerHTML = '';
+            BOOTHS.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.id;
+                opt.textContent = `[コード: ${b.code}] ${b.name}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderAdminQRCard() {
+            const select = document.getElementById('admin-booth-select');
+            const boothId = select.value || BOOTHS[0].id;
+            const booth = BOOTHS.find(b => b.id === boothId);
+
+            document.getElementById('print-booth-category').textContent = booth.category;
+            document.getElementById('print-booth-title').textContent = booth.name;
+            document.getElementById('print-booth-loc').textContent = booth.location;
+            document.getElementById('print-booth-code').textContent = booth.code;
+            document.getElementById('print-booth-pts').textContent = booth.points;
+
+            const qrBox = document.getElementById('admin-qrcode-box');
+            qrBox.innerHTML = '';
+
+            new QRCode(qrBox, {
+                text: booth.payload,
+                width: 150,
+                height: 150,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        function resetAllData() {
+            if (confirm("全てのユーザーデータおよび獲得ポイントを初期化しますか？")) {
+                localStorage.removeItem('fes_stamp_ラリー_data_v1');
+                appState.user = {
+                    nickname: '',
+                    gradeClass: '1年生',
+                    registered: false,
+                    points: 0,
+                    visitedBooths: []
+                };
+                saveState();
+                openUserModal();
+                switchTab('home');
+                showMsgModal("リセット完了", "データがリセットされました。");
+            }
+        }
+
+        // --- GENERIC MESSAGE MODAL ---
+        function showMsgModal(title, body) {
+            document.getElementById('msg-modal-title').textContent = title;
+            document.getElementById('msg-modal-body').textContent = body;
+            document.getElementById('msg-modal-content');
+            document.getElementById('msg-modal').classList.remove('hidden');
+        }
+
+        function closeMsgModal() {
+            document.getElementById('msg-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
